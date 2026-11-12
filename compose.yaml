@@ -1,0 +1,16 @@
+services:
+  peta-poc:
+    build:
+      context: .
+      # platforms: [linux/amd64]   # uncomment when the target server is x86
+    image: peta-poc:0.1.0
+    container_name: peta-poc
+    ports:
+      - "${HOST_PORT:-3000}:3000"   # HOST_PORT=3001 docker compose up -d  if 3000 is taken
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache
+    security_opt:
+      - no-new-privileges:true
