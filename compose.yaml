@@ -1,3 +1,6 @@
+# Fixed project name so it never mixes with another compose project in a folder also called "web".
+name: peta-poc
+
 services:
   peta-poc:
     build:
@@ -6,7 +9,8 @@ services:
     image: peta-poc:0.1.0
     container_name: peta-poc
     ports:
-      - "${HOST_PORT:-3000}:3000"   # HOST_PORT=3001 docker compose up -d  if 3000 is taken
+      - "${HOST_PORT:-3000}:3000"
+    #  - "${HOST_PORT:-8016}:5224" # uncomment when on server deployment
     restart: unless-stopped
     read_only: true
     tmpfs:

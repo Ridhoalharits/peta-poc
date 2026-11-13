@@ -11,6 +11,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { CURRENT_USER } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS, isNavItemActive } from "./nav-config";
+// Static import so Next.js adds the basePath (/peta-poc) to the image URL.
+import kalbeLogo from "../../../public/brand/kalbe-symbol-color.png";
 
 const LOGO_WIDTH = 19; // 250 × 541 source scaled to 40 px tall
 const LOGO_HEIGHT = 40;
@@ -86,7 +88,7 @@ export function AppSidebar() {
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r bg-sidebar">
       <div className="flex h-[72px] shrink-0 items-center gap-3 border-b px-5">
         <Image
-          src="/brand/kalbe-symbol-color.png"
+          src={kalbeLogo}
           alt="Kalbe"
           width={LOGO_WIDTH}
           height={LOGO_HEIGHT}

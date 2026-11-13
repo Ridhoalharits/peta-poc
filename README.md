@@ -55,16 +55,16 @@ Deliberate differences from the mockups and backlog:
 
 ## Run with Docker
 
-The image uses Next.js standalone output on Node 24 Alpine and runs as a non-root user on port 3000. The full plan is in `docs/DOCKER-PLAN.md`.
+The app is served under the base path **`/peta-poc`** (`BASE_PATH` in `next.config.ts`), so every URL starts with it, also in `pnpm dev` (`http://localhost:3000/peta-poc`). The image uses Next.js standalone output on Node 24 Alpine and runs as a non-root user on container port 3000, published on server port **8016**.
 
 ```bash
 # from web/
-docker compose up -d --build                  # http://localhost:3000
-HOST_PORT=3001 docker compose up -d --build   # if port 3000 is taken (e.g. by pnpm dev)
+docker compose up -d --build                  # http://localhost:8016/peta-poc
+HOST_PORT=8017 docker compose up -d           # if port 8016 is taken
 
 docker ps --filter name=peta-poc              # wait for "(healthy)"
 docker logs -f peta-poc
 docker compose down
 ```
 
-Building needs internet access (npm and Google Fonts). Running the container doesn't. For an x86 server, build with `docker buildx build --platform linux/amd64 -t peta-poc:0.1.0-amd64 --load .`
+**Deploying to the on-prem server:** follow [`DEPLOYMENT.md`](DEPLOYMENT.md), a step-by-step guide for a first deployment. Building needs internet access (npm and Google Fonts); running the container doesn't.
