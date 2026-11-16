@@ -12,9 +12,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { PrimitivesSection } from "./primitives-section";
 import { TableDemo } from "./table-demo";
+import { DialogDemo } from "./dialog-demo";
 import { FormDemo } from "./form-demo";
 
 // Review page for the design tokens and shared components (compare with docs/design-system/foundations.png).
@@ -111,6 +113,12 @@ function InputsSection() {
           <div className="flex items-center gap-2"><Checkbox id="dc-cb2" /><Label htmlFor="dc-cb2">Accept related majors</Label></div>
           <div className="flex items-center gap-2"><Checkbox id="dc-cb3" disabled /><Label htmlFor="dc-cb3">Disabled</Label></div>
         </div>
+        <Tabs defaultValue="users">
+          <TabsList>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="requests">Activation Requests</TabsTrigger>
+          </TabsList>
+        </Tabs>
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2"><Switch id="dc-sw1" defaultChecked /><Label htmlFor="dc-sw1">Advanced mode</Label></div>
           <div className="flex items-center gap-2"><Switch id="dc-sw2" /><Label htmlFor="dc-sw2">Off</Label></div>
@@ -147,8 +155,11 @@ export default function DesignCheckPage() {
       <Section title="Data table">
         <TableDemo />
       </Section>
-      <Section title="Form building blocks">
+      <Section title="Form fields">
         <FormDemo />
+      </Section>
+      <Section title="Dialogs">
+        <DialogDemo />
       </Section>
     </main>
   );

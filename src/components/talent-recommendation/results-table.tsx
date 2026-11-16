@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RankCircle } from "@/components/shared/rank-circle";
-import { ScoreBar } from "@/components/shared/score-bar";
+import { RankCircle } from "./rank-circle";
+import { ScoreBar } from "./score-bar";
 import { SectionCard } from "@/components/shared/section-card";
-import type { SearchResult } from "@/lib/types";
+import type { SearchResult } from "@/lib/data/talent-recommendation";
 import { JustificationCell } from "./justification-cell";
 
 // Widths measured from TR-05 (1.1fr / 1fr / 0.9fr / 2.4fr of the flexible space, Rank 64 px, Score 130 px).

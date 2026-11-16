@@ -1,5 +1,4 @@
-import { WEIGHT_PARAMS, type WeightParam } from "@/lib/constants";
-import type { RequirementKey, WeightKey } from "@/lib/types";
+import { WEIGHT_PARAMS, type RequirementKey, type WeightKey, type WeightParam } from "@/lib/data/talent-recommendation";
 
 export const WEIGHTS_TARGET_TOTAL = 100;
 const ROUNDING_FACTOR = 10; // 1 decimal place

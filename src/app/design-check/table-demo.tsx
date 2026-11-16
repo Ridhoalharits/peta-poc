@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, SearchX } from "lucide-react";
+import type { SortingState } from "@tanstack/react-table";
+import { SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -9,127 +10,121 @@ import { DataTable } from "@/components/shared/data-table/data-table";
 import { createDataTableColumnHelper } from "@/components/shared/data-table/features";
 import { ClearFiltersButton, ToolbarSearch, ToolbarSelect } from "@/components/shared/data-table/table-toolbar";
 import { EmptyState } from "@/components/shared/empty-state";
-import { IconButton } from "@/components/shared/icon-button";
-import { StatusBadge } from "@/components/shared/status-badge";
-import { MANAGEMENT_LEVELS, STATUS_LABEL, STATUS_SORT_ORDER } from "@/lib/constants";
+import { PaginationBar } from "@/components/shared/pagination-bar";
+import { LOCATIONS, MANAGEMENT_LEVELS } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
-import type { ManagementLevel, SearchStatus } from "@/lib/types";
+import { paginate, sortRows } from "@/lib/table";
+import type { ManagementLevel } from "@/lib/types";
 
 interface DemoRow {
   id: string;
-  position: string;
+  name: string;
   level: ManagementLevel;
-  createdAt: string;
-  status: SearchStatus;
+  location: string;
+  joinedAt: string;
 }
 
-const DEMO_ROWS: DemoRow[] = [
-  { id: "d-1", position: "Finance Analyst", level: "Officer", createdAt: "2026-10-20", status: "completed" },
-  { id: "d-2", position: "Plant Manager", level: "Manager", createdAt: "2026-09-02", status: "searching" },
-  { id: "d-3", position: "Brand Supervisor", level: "Supervisor", createdAt: "2026-10-05", status: "draft" },
-  { id: "d-4", position: "HR Business Partner", level: "Senior Manager", createdAt: "2026-08-14", status: "failed" },
-  { id: "d-5", position: "Lab Technician", level: "Officer", createdAt: "2026-09-25", status: "completed" },
-];
+const DEMO_ROW_COUNT = 23;
+// Deterministic fake rows (no Math.random): cycle through the shared constants.
+const DEMO_ROWS: DemoRow[] = Array.from({ length: DEMO_ROW_COUNT }, (_, index) => ({
+  id: `d-${index + 1}`,
+  name: `Demo Employee ${String(index + 1).padStart(2, "0")}`,
+  level: MANAGEMENT_LEVELS[index % MANAGEMENT_LEVELS.length],
+  location: LOCATIONS[(index * 3) % LOCATIONS.length],
+  joinedAt: `20${String(15 + (index % 11)).padStart(2, "0")}-${String((index % 12) + 1).padStart(2, "0")}-${String((index % 27) + 1).padStart(2, "0")}`,
+}));
 
 const ALL = "all";
 const LEVEL_OPTIONS = [{ value: ALL, label: "All levels" }, ...MANAGEMENT_LEVELS.map((level) => ({ value: level, label: level }))];
-const STATUS_OPTIONS = [
-  { value: ALL, label: "All statuses" },
-  ...(Object.keys(STATUS_LABEL) as SearchStatus[]).map((status) => ({ value: status, label: STATUS_LABEL[status] })),
-];
+const LOCATION_OPTIONS = [{ value: ALL, label: "All locations" }, ...LOCATIONS.map((location) => ({ value: location, label: location }))];
 
 const helper = createDataTableColumnHelper<DemoRow>();
 const COLUMNS = helper.columns([
-  helper.accessor("position", {
-    header: "Vacant Position",
+  helper.accessor("name", {
+    header: "Name",
     cell: (info) => <span className="text-sm font-medium text-foreground">{info.getValue()}</span>,
-    meta: { className: "w-[38%]" },
+    meta: { className: "w-[34%]" },
   }),
-  helper.accessor("level", {
-    header: "Management Level",
-    sortFn: (rowA, rowB) => MANAGEMENT_LEVELS.indexOf(rowA.original.level) - MANAGEMENT_LEVELS.indexOf(rowB.original.level),
-  }),
-  helper.accessor("createdAt", {
-    header: "Created",
-    cell: (info) => formatDate(info.getValue()),
-  }),
-  helper.accessor("status", {
-    header: "Status",
-    cell: (info) => <StatusBadge status={info.getValue()} />,
-    sortFn: (rowA, rowB) => STATUS_SORT_ORDER[rowA.original.status] - STATUS_SORT_ORDER[rowB.original.status],
-    meta: { skeleton: "badge" },
-  }),
-  helper.display({
-    id: "open",
-    header: () => <span className="sr-only">Open</span>,
-    cell: (info) => (
-      <IconButton label={`Open ${info.row.original.position}`} icon={ChevronRight} size="icon-sm" />
-    ),
-    enableSorting: false,
-    meta: { className: "w-14", align: "right", skeleton: "none" },
-  }),
+  helper.accessor("level", { header: "Management Level" }),
+  helper.accessor("location", { header: "Location" }),
+  helper.accessor("joinedAt", { header: "Joined", cell: (info) => formatDate(info.getValue()) }),
 ]);
+
+function sortValue(row: DemoRow, columnId: string): string | number {
+  if (columnId === "level") return MANAGEMENT_LEVELS.indexOf(row.level);
+  return row[columnId as keyof DemoRow];
+}
 
 export function TableDemo() {
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState(ALL);
-  const [status, setStatus] = useState(ALL);
+  const [location, setLocation] = useState(ALL);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
-  const [narrow, setNarrow] = useState(false);
 
-  const hasFilters = query !== "" || level !== ALL || status !== ALL;
+  const hasFilters = query !== "" || level !== ALL || location !== ALL;
+  const resetPage = <T,>(setter: (value: T) => void) => (value: T) => {
+    setter(value);
+    setPage(1);
+  };
   const clearFilters = () => {
     setQuery("");
     setLevel(ALL);
-    setStatus(ALL);
+    setLocation(ALL);
+    setPage(1);
   };
-  const rows = DEMO_ROWS.filter(
+  const filtered = DEMO_ROWS.filter(
     (row) =>
-      row.position.toLowerCase().includes(query.trim().toLowerCase()) &&
+      row.name.toLowerCase().includes(query.trim().toLowerCase()) &&
       (level === ALL || row.level === level) &&
-      (status === ALL || row.status === status),
+      (location === ALL || row.location === location),
   );
+  const { pageRows, pageCount, from, to } = paginate(sortRows(filtered, sorting, sortValue), page, pageSize);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex gap-6">
-        <div className="flex items-center gap-2">
-          <Switch id="demo-loading" checked={loading} onCheckedChange={setLoading} />
-          <Label htmlFor="demo-loading">Loading state</Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Switch id="demo-narrow" checked={narrow} onCheckedChange={setNarrow} />
-          <Label htmlFor="demo-narrow">Narrow container (horizontal scroll)</Label>
-        </div>
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <Switch id="dc-table-loading" checked={loading} onCheckedChange={setLoading} />
+        <Label htmlFor="dc-table-loading">Loading state</Label>
       </div>
-      <div className={narrow ? "max-w-[520px]" : undefined}>
-        <DataTable
-          ariaLabel="Demo candidate searches"
-          columns={COLUMNS}
-          data={rows}
-          loading={loading}
-          initialSort={{ id: "createdAt", desc: true }}
-          toolbar={
-            <>
-              <ToolbarSearch value={query} onChange={setQuery} placeholder="Search vacant position..." ariaLabel="Search vacant position" />
-              <ToolbarSelect value={level} onChange={setLevel} options={LEVEL_OPTIONS} ariaLabel="Filter by management level" width={200} />
-              <ToolbarSelect value={status} onChange={setStatus} options={STATUS_OPTIONS} ariaLabel="Filter by status" width={180} />
-              {hasFilters && <ClearFiltersButton onClick={clearFilters} />}
-            </>
-          }
-          emptyState={
-            <EmptyState
-              variant="inline"
-              tone="neutral"
-              icon={SearchX}
-              title="No candidate searches found"
-              description="No searches match these filters. Try another position name or clear the filters."
-              action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>}
-            />
-          }
-          footer={loading ? "Loading candidate searches..." : `Showing ${rows.length} of ${DEMO_ROWS.length} candidate searches`}
-        />
-      </div>
+      <DataTable
+        ariaLabel="Demo employees"
+        columns={COLUMNS}
+        data={pageRows}
+        loading={loading}
+        sorting={sorting}
+        onSortingChange={setSorting}
+        toolbar={
+          <>
+            <ToolbarSearch value={query} onChange={resetPage(setQuery)} placeholder="Search name…" ariaLabel="Search name" />
+            <ToolbarSelect value={level} onChange={resetPage(setLevel)} options={LEVEL_OPTIONS} ariaLabel="Management Level" width={200} />
+            <ToolbarSelect value={location} onChange={resetPage(setLocation)} options={LOCATION_OPTIONS} ariaLabel="Location" width={180} />
+            {hasFilters && <ClearFiltersButton onClick={clearFilters} />}
+          </>
+        }
+        emptyState={
+          <EmptyState
+            variant="inline"
+            tone="neutral"
+            icon={SearchX}
+            title="No employees found"
+            description="No rows match these filters."
+            action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>}
+          />
+        }
+        footer={
+          <PaginationBar
+            page={page}
+            pageCount={pageCount}
+            onPageChange={setPage}
+            summary={`Showing ${from}–${to} of ${filtered.length} entries`}
+            pageSize={pageSize}
+            onPageSizeChange={resetPage(setPageSize)}
+          />
+        }
+      />
     </div>
   );
 }

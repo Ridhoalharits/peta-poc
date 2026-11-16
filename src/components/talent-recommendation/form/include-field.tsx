@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { FieldHelper } from "./form-field";
+import { FieldHelper } from "@/components/shared/form/form-field";
 
 export interface IncludeFieldControlProps {
   /** True when the requirement is unticked. */

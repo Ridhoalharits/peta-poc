@@ -1,23 +1,16 @@
-import { Clock, Download, Pencil, SearchX, Trash2, UserSearch, XCircle } from "lucide-react";
+import { Ban, Check, Clock, Download, Pencil, SearchX, Trash2, TriangleAlert, UserSearch, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, type EmptyStateTone } from "@/components/shared/empty-state";
 import { FormAlert } from "@/components/shared/form-alert";
 import { IconButton } from "@/components/shared/icon-button";
-import { InfoNote } from "@/components/shared/info-note";
-import { RankCircle } from "@/components/shared/rank-circle";
-import { ScoreBar } from "@/components/shared/score-bar";
 import { SectionCard } from "@/components/shared/section-card";
-import { Spinner } from "@/components/shared/spinner";
-import { StatusBadge } from "@/components/shared/status-badge";
-import { ToneBadge } from "@/components/shared/tone-badge";
-import type { SearchStatus } from "@/lib/types";
+import { SolidBadge } from "@/components/shared/solid-badge";
 import { ToastDemo } from "./toast-demo";
 
-const STATUSES: SearchStatus[] = ["draft", "searching", "completed", "failed"];
 const EMPTY_STATE_TONES: { tone: EmptyStateTone; icon: typeof Clock; title: string }[] = [
   { tone: "brand", icon: UserSearch, title: "No candidate searches yet" },
   { tone: "neutral", icon: SearchX, title: "No candidate searches found" },
-  { tone: "danger", icon: XCircle, title: "The search failed" },
+  { tone: "danger", icon: TriangleAlert, title: "The search failed" },
 ];
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -33,34 +26,30 @@ export function PrimitivesSection() {
   return (
     <section className="flex flex-col gap-6">
       <h2 className="font-heading text-lg font-semibold">Feedback and page primitives</h2>
-      <Row label="Status badges">
-        {STATUSES.map((status) => <StatusBadge key={status} status={status} />)}
+      <Row label="Solid badges">
+        <SolidBadge tone="primary">Primary</SolidBadge>
+        <SolidBadge tone="warning">Warning</SolidBadge>
+        <SolidBadge tone="destructive">Destructive</SolidBadge>
+        <SolidBadge tone="neutral">Neutral</SolidBadge>
       </Row>
-      <Row label="Tone badges">
-        <ToneBadge tone="success">Ready</ToneBadge>
-        <ToneBadge tone="warning">10% left to assign</ToneBadge>
-        <ToneBadge tone="destructive">5% over the limit</ToneBadge>
-        <ToneBadge tone="neutral" icon={Pencil}>Neutral</ToneBadge>
+      <Row label="With an icon or a dot">
+        <SolidBadge tone="primary" icon={Check}>Completed</SolidBadge>
+        <SolidBadge tone="warning" icon={Clock}>Pending Request</SolidBadge>
+        <SolidBadge tone="destructive" icon={X}>Failed</SolidBadge>
+        <SolidBadge tone="neutral" icon={Ban}>Deactivated</SolidBadge>
+        <SolidBadge tone="primary" dot>Active</SolidBadge>
       </Row>
       <Row label="Icon buttons (hover for tooltip)">
         <IconButton label="Edit criteria" icon={Pencil} variant="outline" />
         <IconButton label="Download" icon={Download} />
         <IconButton label="Delete" icon={Trash2} size="icon-sm" />
       </Row>
-      <Row label="Score bars, rank circles, spinner">
-        <ScoreBar score={92} className="w-40" />
-        <ScoreBar score={58} className="w-40" />
-        <RankCircle rank={1} />
-        <RankCircle rank={4} />
-        <Spinner />
-        <Spinner size="sm" />
-      </Row>
       <Row label="Toasts">
         <ToastDemo />
       </Row>
       <div className="grid grid-cols-2 items-start gap-6">
-        <FormAlert title="The search can't start yet">Fill in Job Title and Job Description.</FormAlert>
-        <InfoNote>Results are ranked by how closely each employee matches your criteria.</InfoNote>
+        <FormAlert title="The search can't start yet">Add the job title and job description.</FormAlert>
+        <FormAlert>Fix the highlighted fields to continue.</FormAlert>
       </div>
       <SectionCard title="Section card" description="Card with a header, body and footer." footer={<Button>Save</Button>}>
         <p className="text-sm">Card body</p>

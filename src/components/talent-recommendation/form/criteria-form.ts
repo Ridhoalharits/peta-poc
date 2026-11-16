@@ -1,16 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { FieldErrors, Resolver } from "react-hook-form";
 import { z } from "zod";
-import type {
-  EducationLevel,
-  EmployeeType,
-  GenderPreference,
-  ManagementLevel,
-  RequirementKey,
-  SearchCriteria,
-  WeightKey,
-} from "@/lib/types";
-import { WEIGHTS_TARGET_TOTAL, weightsTotal } from "@/lib/weights";
+import type { GenderPreference, RequirementKey, SearchCriteria, WeightKey } from "@/lib/data/talent-recommendation";
+import type { EducationLevel, EmployeeType, ManagementLevel } from "@/lib/types";
+import { WEIGHTS_TARGET_TOTAL, weightsTotal } from "./weights";
 
 const GPA_DECIMALS = 2;
 

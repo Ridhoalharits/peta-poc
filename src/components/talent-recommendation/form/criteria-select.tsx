@@ -2,7 +2,7 @@
 
 import { Controller, useFormContext } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { CriteriaFormInput } from "@/lib/criteria-form";
+import type { CriteriaFormInput } from "./criteria-form";
 
 type SelectFieldName = "educationLevel" | "employeeType" | "managementLevel";
 

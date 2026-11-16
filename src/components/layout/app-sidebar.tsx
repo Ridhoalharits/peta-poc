@@ -97,7 +97,7 @@ export function AppSidebar() {
         />
         <span className="font-heading text-xl font-bold tracking-[0.06em]">PETA</span>
       </div>
-      {/* Dynamic routes (e.g. /talent-management/[[...slug]]) only know the pathname at runtime. */}
+      {/* Dynamic routes (e.g. /talent-management/[id]) only know the pathname at runtime. */}
       <Suspense fallback={<SidebarNav pathname={null} />}>
         <ActiveSidebarNav />
       </Suspense>

@@ -1,4 +1,4 @@
-import type { CandidateSearch } from "@/lib/types";
+import type { CandidateSearch } from "@/lib/data/talent-recommendation";
 
 export type SearchView = "processing" | "found" | "not-found" | "failed";
 

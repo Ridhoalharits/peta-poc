@@ -1,23 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import type { SortingState } from "@tanstack/react-table";
 import { Plus, SearchX, UserSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/shared/data-table/data-table";
 import { ClearFiltersButton, ToolbarSearch, ToolbarSelect } from "@/components/shared/data-table/table-toolbar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageTitle } from "@/components/shared/page-title";
-import { MANAGEMENT_LEVELS, STATUS_LABEL } from "@/lib/constants";
-import { toastSuccess } from "@/lib/toast";
-import type { CandidateSearch, SearchStatus } from "@/lib/types";
+import { MANAGEMENT_LEVELS } from "@/lib/constants";
+import {
+  STATUS_LABEL,
+  STATUS_SORT_ORDER,
+  type CandidateSearch,
+  type SearchStatus,
+} from "@/lib/data/talent-recommendation";
+import { sortRows } from "@/lib/table";
 import { SEARCH_COLUMNS } from "./search-columns";
 
 export type SearchListState = "empty" | "loading";
 
 const NEW_SEARCH_HREF = "/talent-recommendation/new";
 const ALL = "all";
+const DEFAULT_SORTING: SortingState = [{ id: "createdAt", desc: true }];
 const LEVEL_OPTIONS = [
   { value: ALL, label: "All levels" },
   ...MANAGEMENT_LEVELS.map((level) => ({ value: level, label: level })),
@@ -27,12 +33,12 @@ const STATUS_OPTIONS = [
   ...(Object.keys(STATUS_LABEL) as SearchStatus[]).map((status) => ({ value: status, label: STATUS_LABEL[status] })),
 ];
 
-interface SearchListProps {
-  searches: CandidateSearch[];
-  /** Demo states from ?state= */
-  state?: SearchListState;
-  /** Set when arriving from Save Draft (?toast=draft-saved&title=…). */
-  draftSavedTitle?: string;
+/** What each sortable column sorts by. ISO dates sort correctly as strings. */
+function sortValue(search: CandidateSearch, columnId: string): string | number {
+  if (columnId === "level") return MANAGEMENT_LEVELS.indexOf(search.level);
+  if (columnId === "status") return STATUS_SORT_ORDER[search.status];
+  if (columnId === "createdAt") return search.createdAt;
+  return search.position;
 }
 
 function NewSearchButton() {
@@ -46,41 +52,35 @@ function NewSearchButton() {
   );
 }
 
-/** Shows the draft-saved toast once, then strips the toast params from the URL. */
-function useDraftSavedToast(draftSavedTitle: string | undefined) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const shownRef = useRef(false);
-
-  useEffect(() => {
-    if (draftSavedTitle === undefined || shownRef.current) return;
-    shownRef.current = true;
-    toastSuccess("Draft saved", `${draftSavedTitle} was saved as a draft.`);
-    router.replace(pathname, { scroll: false });
-  }, [draftSavedTitle, pathname, router]);
+function EmptyList() {
+  return (
+    <>
+      <PageTitle title="Talent Recommendation" />
+      <EmptyState
+        variant="page"
+        tone="brand"
+        icon={UserSearch}
+        title="No candidate searches yet"
+        description="Create a candidate search for a vacant position, and PETA will recommend matching talents."
+        action={<NewSearchButton />}
+      />
+    </>
+  );
 }
 
-export function SearchList({ searches, state, draftSavedTitle }: SearchListProps) {
+interface SearchListProps {
+  searches: CandidateSearch[];
+  /** Demo states from ?state= */
+  state?: SearchListState;
+}
+
+export function SearchList({ searches, state }: SearchListProps) {
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState(ALL);
   const [status, setStatus] = useState(ALL);
-  useDraftSavedToast(draftSavedTitle);
+  const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
 
-  if (state === "empty") {
-    return (
-      <>
-        <PageTitle title="Talent Recommendation" />
-        <EmptyState
-          variant="page"
-          tone="brand"
-          icon={UserSearch}
-          title="No candidate searches yet"
-          description="Create a candidate search for a vacant position, and PETA will recommend matching talents."
-          action={<NewSearchButton />}
-        />
-      </>
-    );
-  }
+  if (state === "empty") return <EmptyList />;
 
   const trimmedQuery = query.trim();
   const hasFilters = trimmedQuery !== "" || level !== ALL || status !== ALL;
@@ -89,12 +89,13 @@ export function SearchList({ searches, state, draftSavedTitle }: SearchListProps
     setLevel(ALL);
     setStatus(ALL);
   };
-  const rows = searches.filter(
+  const filtered = searches.filter(
     (search) =>
       search.position.toLowerCase().includes(trimmedQuery.toLowerCase()) &&
       (level === ALL || search.level === level) &&
       (status === ALL || search.status === status),
   );
+  const rows = sortRows(filtered, sorting, sortValue);
   const loading = state === "loading";
 
   return (
@@ -105,7 +106,8 @@ export function SearchList({ searches, state, draftSavedTitle }: SearchListProps
         columns={SEARCH_COLUMNS}
         data={rows}
         loading={loading}
-        initialSort={{ id: "createdAt", desc: true }}
+        sorting={sorting}
+        onSortingChange={setSorting}
         toolbar={
           <>
             <ToolbarSearch value={query} onChange={setQuery} placeholder="Search vacant position…" ariaLabel="Search vacant position" />
@@ -137,4 +139,3 @@ export function SearchList({ searches, state, draftSavedTitle }: SearchListProps
     </>
   );
 }
-

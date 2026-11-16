@@ -1,9 +1,6 @@
 import {
   createColumnHelper,
-  createSortedRowModel,
   rowSortingFeature,
-  sortFn_alphanumeric,
-  sortFn_text,
   tableFeatures,
   type ColumnDef,
   type RowData,
@@ -20,8 +17,6 @@ export interface DataTableColumnMeta {
 // Module scope so the table's feature set stays stable between renders (TanStack Table v9).
 export const dataTableFeatures = tableFeatures({
   rowSortingFeature,
-  sortedRowModel: createSortedRowModel(),
-  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
   columnMeta: {} as DataTableColumnMeta,
 });
 

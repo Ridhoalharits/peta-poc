@@ -1,12 +1,6 @@
-import { cloneElement } from "react";
 import { CircleAlert } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-
-interface FieldControlProps {
-  "aria-invalid"?: boolean;
-  "aria-describedby"?: string;
-}
 
 interface FormFieldProps {
   label: string;
@@ -14,8 +8,8 @@ interface FormFieldProps {
   required?: boolean;
   helper?: string;
   error?: string;
-  /** A single control (Input, Textarea, SelectTrigger…); it receives aria-invalid and aria-describedby. */
-  children: React.ReactElement<FieldControlProps>;
+  /** The control. Pass it `aria-invalid` and `aria-describedby={fieldDescribedBy(htmlFor, { error, helper })}`. */
+  children: React.ReactNode;
   className?: string;
 }
 
@@ -44,10 +38,14 @@ export function FieldHelper({ id, children }: { id?: string; children: React.Rea
   );
 }
 
+/** The aria-describedby value for a FormField control: its error and helper ids. */
+export function fieldDescribedBy(htmlFor: string, { error, helper }: { error?: string; helper?: string }): string | undefined {
+  return [error && `${htmlFor}-error`, helper && `${htmlFor}-helper`].filter(Boolean).join(" ") || undefined;
+}
+
 export function FormField({ label, htmlFor, required, helper, error, children, className }: FormFieldProps) {
   const helperId = helper ? `${htmlFor}-helper` : undefined;
   const errorId = error ? `${htmlFor}-error` : undefined;
-  const describedBy = [errorId, helperId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
@@ -56,7 +54,7 @@ export function FormField({ label, htmlFor, required, helper, error, children, c
         {required && <RequiredMark />}
         {required && <span className="sr-only">(required)</span>}
       </Label>
-      {cloneElement(children, { "aria-invalid": error ? true : undefined, "aria-describedby": describedBy })}
+      {children}
       {error && <FieldError id={errorId!}>{error}</FieldError>}
       {helper && <FieldHelper id={helperId}>{helper}</FieldHelper>}
     </div>

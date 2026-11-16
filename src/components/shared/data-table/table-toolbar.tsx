@@ -4,17 +4,19 @@ import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface ToolbarSearchProps {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   ariaLabel: string;
+  className?: string;
 }
 
-export function ToolbarSearch({ value, onChange, placeholder, ariaLabel }: ToolbarSearchProps) {
+export function ToolbarSearch({ value, onChange, placeholder, ariaLabel, className }: ToolbarSearchProps) {
   return (
-    <div className="relative w-full max-w-[320px]">
+    <div className={cn("relative w-full max-w-[320px]", className)}>
       <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
       <Input
         type="search"

@@ -1,27 +1,29 @@
 import { Suspense } from "react";
 import { PageMain } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
+import { ToastOnMount } from "@/components/shared/toast-on-mount";
 import { SearchList, type SearchListState } from "@/components/talent-recommendation/search-list";
-import { PREFILLED_CRITERIA } from "@/lib/constants";
-import { listSearches } from "@/lib/data";
+import { listSearches } from "@/lib/data/talent-recommendation";
+import { param, type SearchParamsRecord } from "@/lib/demo";
 
 /** Title used in the draft-saved toast when ?title= is missing. */
-const DRAFT_TITLE_FALLBACK = PREFILLED_CRITERIA.jobTitle;
-
+const DRAFT_TITLE_FALLBACK = "Accounting Officer";
 const DEMO_STATES: readonly SearchListState[] = ["empty", "loading"];
+const TOAST_PARAMS = ["toast", "title"];
 
-function firstValue(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
+async function SearchListFromParams({ searchParams }: { searchParams: Promise<SearchParamsRecord> }) {
+  const sp = await searchParams;
+  const state = DEMO_STATES.find((demoState) => demoState === param(sp, "state"));
+  const draftTitle = param(sp, "title")?.trim() || DRAFT_TITLE_FALLBACK;
 
-async function SearchListFromParams({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const params = await searchParams;
-  const stateParam = firstValue(params.state);
-  const state = DEMO_STATES.find((demoState) => demoState === stateParam);
-  const draftSavedTitle =
-    firstValue(params.toast) === "draft-saved" ? firstValue(params.title)?.trim() || DRAFT_TITLE_FALLBACK : undefined;
-
-  return <SearchList searches={listSearches()} state={state} draftSavedTitle={draftSavedTitle} />;
+  return (
+    <>
+      <SearchList searches={listSearches()} state={state} />
+      {param(sp, "toast") === "draft-saved" && (
+        <ToastOnMount title="Draft saved" description={`${draftTitle} was saved as a draft.`} clear={TOAST_PARAMS} />
+      )}
+    </>
+  );
 }
 
 export default function TalentRecommendationPage({ searchParams }: PageProps<"/talent-recommendation">) {

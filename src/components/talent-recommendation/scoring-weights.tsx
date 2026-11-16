@@ -5,9 +5,9 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { NumberInput } from "@/components/shared/form/number-input";
-import { ToneBadge } from "@/components/shared/tone-badge";
-import { DEFAULT_WEIGHTS, WEIGHT_PARAMS, type WeightParam } from "@/lib/constants";
-import type { CriteriaFormInput } from "@/lib/criteria-form";
+import { SolidBadge } from "@/components/shared/solid-badge";
+import { DEFAULT_WEIGHTS, WEIGHT_PARAMS, type WeightParam } from "@/lib/data/talent-recommendation";
+import type { CriteriaFormInput } from "./form/criteria-form";
 import { cn } from "@/lib/utils";
 import {
   WEIGHTS_TARGET_TOTAL,
@@ -16,7 +16,7 @@ import {
   roundWeight,
   weightsStatus,
   weightsTotal,
-} from "@/lib/weights";
+} from "./form/weights";
 
 const WEIGHT_STEP = "0.5";
 
@@ -24,15 +24,15 @@ function TotalBadge({ total }: { total: number }) {
   const status = weightsStatus(total);
   if (status === "ready") {
     return (
-      <ToneBadge tone="success" icon={Check}>
+      <SolidBadge tone="primary" icon={Check}>
         Ready
-      </ToneBadge>
+      </SolidBadge>
     );
   }
   return status === "under" ? (
-    <ToneBadge tone="warning">{roundWeight(WEIGHTS_TARGET_TOTAL - total)}% left to assign</ToneBadge>
+    <SolidBadge tone="warning">{roundWeight(WEIGHTS_TARGET_TOTAL - total)}% left to assign</SolidBadge>
   ) : (
-    <ToneBadge tone="destructive">{roundWeight(total - WEIGHTS_TARGET_TOTAL)}% over the limit</ToneBadge>
+    <SolidBadge tone="destructive">{roundWeight(total - WEIGHTS_TARGET_TOTAL)}% over the limit</SolidBadge>
   );
 }
 

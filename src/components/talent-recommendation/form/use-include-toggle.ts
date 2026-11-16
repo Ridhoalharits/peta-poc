@@ -1,8 +1,8 @@
 "use client";
 
 import { useFormContext, useWatch } from "react-hook-form";
-import type { CriteriaFormInput } from "@/lib/criteria-form";
-import type { RequirementKey } from "@/lib/types";
+import type { CriteriaFormInput } from "./criteria-form";
+import type { RequirementKey } from "@/lib/data/talent-recommendation";
 
 /** Props for an IncludeField bound to `include.{key}`. */
 export function useIncludeToggle(key: RequirementKey) {

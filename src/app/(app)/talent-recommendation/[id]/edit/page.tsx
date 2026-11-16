@@ -3,7 +3,7 @@ import { PageMain } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageTitle } from "@/components/shared/page-title";
 import { CandidateSearchForm } from "@/components/talent-recommendation/candidate-search-form";
-import { getSearch, getSearchCriteria, listSearches } from "@/lib/data";
+import { getSearch, getSearchCriteria, listSearches } from "@/lib/data/talent-recommendation";
 
 const LIST_HREF = "/talent-recommendation";
 

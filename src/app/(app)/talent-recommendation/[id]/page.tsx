@@ -2,8 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { PageMain } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { SearchDetail } from "@/components/talent-recommendation/search-detail";
-import { getSampleResults, getSearch, getSearchResults, searchHref } from "@/lib/data";
-import { resolveSearchView } from "@/lib/search-view";
+import { getSampleResults, getSearch, getSearchResults, searchHref } from "@/lib/data/talent-recommendation";
+import { param } from "@/lib/demo";
+import { resolveSearchView } from "@/components/talent-recommendation/search-view";
 
 // Blocking route (Cache Components): params and ?state= are read before rendering, so drafts get a real
 // redirect and unknown ids a real 404 instead of a streamed fallback.
@@ -15,8 +16,8 @@ export default async function SearchDetailPage({ params, searchParams }: PagePro
   if (!search) notFound();
   if (search.status === "draft") redirect(searchHref(search));
 
-  const { state } = await searchParams;
-  const view = resolveSearchView(search, typeof state === "string" ? state : undefined);
+  const state = param(await searchParams, "state");
+  const view = resolveSearchView(search, state);
   const searchResults = getSearchResults(search.id);
   // ?state=found on a search without results (demo) falls back to the sample ranking.
   const results = view === "found" && searchResults.length === 0 ? getSampleResults() : searchResults;

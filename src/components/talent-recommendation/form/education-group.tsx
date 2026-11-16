@@ -3,12 +3,12 @@
 import { Controller, useFormContext } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FieldGroup } from "@/components/shared/form/field-group";
-import { IncludeField } from "@/components/shared/form/include-field";
+import { FieldGroup } from "./field-group";
+import { IncludeField } from "./include-field";
 import { NumberInput } from "@/components/shared/form/number-input";
-import { TagInput } from "@/components/shared/form/tag-input";
+import { TagInput } from "./tag-input";
 import { EDUCATION_LEVELS } from "@/lib/constants";
-import type { CriteriaFormInput } from "@/lib/criteria-form";
+import type { CriteriaFormInput } from "./criteria-form";
 import { CriteriaSelect } from "./criteria-select";
 import { useIncludeToggle } from "./use-include-toggle";
 

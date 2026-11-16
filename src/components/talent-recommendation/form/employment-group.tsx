@@ -1,11 +1,12 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
-import { FieldGroup } from "@/components/shared/form/field-group";
-import { IncludeField } from "@/components/shared/form/include-field";
+import { FieldGroup } from "./field-group";
+import { IncludeField } from "./include-field";
 import { NumberInput } from "@/components/shared/form/number-input";
-import { EMPLOYEE_TYPES, MANAGEMENT_LEVELS } from "@/lib/constants";
-import type { CriteriaFormInput } from "@/lib/criteria-form";
+import { MANAGEMENT_LEVELS } from "@/lib/constants";
+import { SEARCH_EMPLOYEE_TYPES } from "@/lib/data/talent-recommendation";
+import type { CriteriaFormInput } from "./criteria-form";
 import { CriteriaSelect } from "./criteria-select";
 import { useIncludeToggle } from "./use-include-toggle";
 
@@ -35,7 +36,7 @@ export function EmploymentGroup() {
       </IncludeField>
       <IncludeField id="employee-type" label="Employee Type" {...employeeType}>
         {({ disabled, labelId }) => (
-          <CriteriaSelect name="employeeType" options={EMPLOYEE_TYPES} labelId={labelId} disabled={disabled} />
+          <CriteriaSelect name="employeeType" options={SEARCH_EMPLOYEE_TYPES} labelId={labelId} disabled={disabled} />
         )}
       </IncludeField>
       <IncludeField id="management-level" label="Management Level" {...level}>

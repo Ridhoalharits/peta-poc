@@ -1,7 +1,7 @@
-import { InfoNote } from "@/components/shared/info-note";
+import { InfoNote } from "./info-note";
 import { PageTitle } from "@/components/shared/page-title";
-import type { SearchView } from "@/lib/search-view";
-import type { CandidateSearch, SearchResult } from "@/lib/types";
+import type { SearchView } from "./search-view";
+import type { CandidateSearch, SearchResult } from "@/lib/data/talent-recommendation";
 import { FailedView } from "./failed-view";
 import { NotFoundView } from "./not-found-view";
 import { ProcessingView } from "./processing-view";

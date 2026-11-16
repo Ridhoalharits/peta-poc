@@ -1,11 +1,11 @@
 "use client";
 
 import { Controller, useFormContext } from "react-hook-form";
-import { FieldGroup } from "@/components/shared/form/field-group";
-import { IncludeField } from "@/components/shared/form/include-field";
-import { RadioPills } from "@/components/shared/form/radio-pills";
+import { FieldGroup } from "./field-group";
+import { IncludeField } from "./include-field";
+import { RadioPills } from "./radio-pills";
 import { RangeInput } from "@/components/shared/form/range-input";
-import type { CriteriaFormInput } from "@/lib/criteria-form";
+import type { CriteriaFormInput } from "./criteria-form";
 import { useIncludeToggle } from "./use-include-toggle";
 
 const GENDER_OPTIONS = [

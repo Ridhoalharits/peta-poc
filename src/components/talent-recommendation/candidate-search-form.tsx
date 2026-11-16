@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { FormAlert } from "@/components/shared/form-alert";
-import { SwitchCard } from "@/components/shared/form/switch-card";
+import { SwitchCard } from "./form/switch-card";
 import { SectionCard } from "@/components/shared/section-card";
 import {
   criteriaFormResolver,
@@ -14,15 +14,15 @@ import {
   toFormValues,
   type CriteriaFormInput,
   type CriteriaFormOutput,
-} from "@/lib/criteria-form";
-import { rerunSearch, startSearch } from "@/lib/data";
-import type { SearchCriteria } from "@/lib/types";
-import { weightsTotal } from "@/lib/weights";
-import { EducationGroup } from "./criteria-form/education-group";
-import { EmploymentGroup } from "./criteria-form/employment-group";
-import { FormActions } from "./criteria-form/form-actions";
-import { PreferencesGroup } from "./criteria-form/preferences-group";
-import { VacancyCard } from "./criteria-form/vacancy-card";
+} from "./form/criteria-form";
+import { rerunSearch, startSearch } from "@/lib/data/talent-recommendation";
+import type { SearchCriteria } from "@/lib/data/talent-recommendation";
+import { weightsTotal } from "./form/weights";
+import { EducationGroup } from "./form/education-group";
+import { EmploymentGroup } from "./form/employment-group";
+import { FormActions } from "./form/form-actions";
+import { PreferencesGroup } from "./form/preferences-group";
+import { VacancyCard } from "./form/vacancy-card";
 import { ScoringWeights } from "./scoring-weights";
 
 const LIST_HREF = "/talent-recommendation";

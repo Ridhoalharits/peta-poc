@@ -1,6 +1,6 @@
 "use client";
 
-import { flexRender, useTable, type Header, type RowData } from "@tanstack/react-table";
+import { flexRender, useTable, type Header, type RowData, type SortingState, type Updater } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { SectionCard } from "../section-card";
@@ -11,14 +11,16 @@ import { SortableHeader, ariaSortValue } from "./sortable-header";
 interface DataTableProps<TData extends RowData> {
   /** Keep stable (module scope or useMemo). Set `meta: { className, align, skeleton }` per column. */
   columns: DataTableColumn<TData>[];
-  /** Already filtered by the page; the table only sorts. */
+  /** Already filtered, sorted and paged by the page (see lib/table.ts). */
   data: TData[];
   toolbar?: React.ReactNode;
   loading?: boolean;
   /** Shown inside the body when there are 0 rows. */
   emptyState?: React.ReactNode;
   footer?: React.ReactNode;
-  initialSort?: { id: string; desc: boolean };
+  /** Controlled, so pages that paginate can sort the full list before slicing. */
+  sorting: SortingState;
+  onSortingChange: (sorting: SortingState) => void;
   ariaLabel: string;
   /** Below this width the table scrolls inside the card. */
   tableClassName?: string;
@@ -52,7 +54,8 @@ export function DataTable<TData extends RowData>({
   loading = false,
   emptyState,
   footer,
-  initialSort,
+  sorting,
+  onSortingChange,
   ariaLabel,
   tableClassName = "min-w-[720px]",
 }: DataTableProps<TData>) {
@@ -60,7 +63,10 @@ export function DataTable<TData extends RowData>({
     features: dataTableFeatures,
     columns,
     data,
-    initialState: { sorting: initialSort ? [initialSort] : [] },
+    state: { sorting },
+    onSortingChange: (updater: Updater<SortingState>) =>
+      onSortingChange(typeof updater === "function" ? updater(sorting) : updater),
+    manualSorting: true,
     enableSortingRemoval: false,
   });
   const rows = table.getRowModel().rows;

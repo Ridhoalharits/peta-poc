@@ -3,12 +3,13 @@ import { PageMain } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageTitle } from "@/components/shared/page-title";
 import { CandidateSearchForm } from "@/components/talent-recommendation/candidate-search-form";
-import { DEFAULT_CRITERIA } from "@/lib/constants";
+import { DEFAULT_CRITERIA } from "@/lib/data/talent-recommendation";
+import { param, type SearchParamsRecord } from "@/lib/demo";
 
 const LIST_HREF = "/talent-recommendation";
 
-async function FormFromParams({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const { state } = await searchParams;
+async function FormFromParams({ searchParams }: { searchParams: Promise<SearchParamsRecord> }) {
+  const state = param(await searchParams, "state");
   return <CandidateSearchForm initial={DEFAULT_CRITERIA} mode="new" cancelHref={LIST_HREF} showErrorsOnMount={state === "errors"} />;
 }
 
