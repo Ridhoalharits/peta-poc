@@ -4,17 +4,21 @@ import { flexRender, useTable, type Header, type RowData, type SortingState, typ
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { SectionCard } from "../section-card";
-import { dataTableFeatures, type DataTableColumn, type DataTableFeatures } from "./features";
+import { dataTableFeatures, columnCellProps, type DataTableColumn, type DataTableFeatures } from "./features";
 import { SkeletonRows } from "./skeleton-rows";
 import { SortableHeader, ariaSortValue } from "./sortable-header";
 
+const DEFAULT_SKELETON_ROWS = 8;
+
 interface DataTableProps<TData extends RowData> {
-  /** Keep stable (module scope or useMemo). Set `meta: { className, align, skeleton }` per column. */
+  /** Keep stable (module scope or useMemo). Set `meta: { className, align, skeleton, width, sticky }` per column. */
   columns: DataTableColumn<TData>[];
   /** Already filtered, sorted and paged by the page (see lib/table.ts). */
   data: TData[];
   toolbar?: React.ReactNode;
   loading?: boolean;
+  /** Skeleton rows while loading. Default 8. */
+  skeletonRows?: number;
   /** Shown inside the body when there are 0 rows. */
   emptyState?: React.ReactNode;
   footer?: React.ReactNode;
@@ -31,12 +35,14 @@ function HeaderCell<TData extends RowData>({ header }: { header: Header<DataTabl
   const meta = column.columnDef.meta;
   const label = column.columnDef.header;
   const canSort = column.getCanSort() && typeof label === "string";
+  const { className, style } = columnCellProps(meta);
   const sorted = column.getIsSorted();
 
   return (
     <TableHead
       aria-sort={canSort ? ariaSortValue(sorted) : undefined}
-      className={cn("h-11 px-4 text-[13px] font-medium text-muted-foreground", meta?.align === "right" && "text-right", meta?.className)}
+      className={cn("h-11 px-4 text-[13px] font-medium text-muted-foreground", className)}
+      style={style}
     >
       {header.isPlaceholder ? null : canSort ? (
         <SortableHeader label={label} sorted={sorted} onToggle={column.getToggleSortingHandler()} />
@@ -52,6 +58,7 @@ export function DataTable<TData extends RowData>({
   data,
   toolbar,
   loading = false,
+  skeletonRows = DEFAULT_SKELETON_ROWS,
   emptyState,
   footer,
   sorting,
@@ -87,7 +94,7 @@ export function DataTable<TData extends RowData>({
         </TableHeader>
         <TableBody>
           {loading ? (
-            <SkeletonRows columns={columnMetas} />
+            <SkeletonRows columns={columnMetas} count={skeletonRows} />
           ) : rows.length === 0 ? (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={columnMetas.length} className="p-0 whitespace-normal">
@@ -96,13 +103,14 @@ export function DataTable<TData extends RowData>({
             </TableRow>
           ) : (
             rows.map((row) => (
-              <TableRow key={row.id} className="h-13 border-zinc-100 hover:bg-table-header">
+              <TableRow key={row.id} className="h-13 border-zinc-100 bg-white hover:bg-table-header">
                 {row.getAllCells().map((cell) => {
-                  const meta = cell.column.columnDef.meta;
+                  const { className, style } = columnCellProps(cell.column.columnDef.meta);
                   return (
                     <TableCell
                       key={cell.id}
-                      className={cn("px-4 text-[13px] text-zinc-600", meta?.align === "right" && "text-right", meta?.className)}
+                      className={cn("px-4 text-[13px] text-zinc-600", className)}
+                      style={style}
                     >
                       <table.FlexRender cell={cell} />
                     </TableCell>

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   createColumnHelper,
   rowSortingFeature,
@@ -12,6 +13,10 @@ export interface DataTableColumnMeta {
   align?: "left" | "right";
   /** What the loading row shows for this column. Defaults to "text". */
   skeleton?: "text" | "badge" | "none";
+  /** Fixed width in px (wide tables whose widths come from data). */
+  width?: number;
+  /** Keeps the column in place while the rest scrolls sideways (TM-01 fixed columns). */
+  sticky?: { left: number };
 }
 
 // Module scope so the table's feature set stays stable between renders (TanStack Table v9).
@@ -28,4 +33,18 @@ export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures
 
 export function createDataTableColumnHelper<TData extends RowData>() {
   return createColumnHelper<DataTableFeatures, TData>();
+}
+
+/** Class and style a header or body cell gets from its column meta (width, alignment, sticky). */
+export function columnCellProps(meta: DataTableColumnMeta | undefined): { className: string; style?: CSSProperties } {
+  const className = [
+    meta?.align === "right" ? "text-right" : "",
+    meta?.sticky ? "sticky z-[1] bg-inherit" : "",
+    meta?.className ?? "",
+  ].join(" ");
+  const style: CSSProperties | undefined =
+    meta?.width !== undefined || meta?.sticky
+      ? { width: meta.width, minWidth: meta.width, left: meta.sticky?.left }
+      : undefined;
+  return { className, style };
 }

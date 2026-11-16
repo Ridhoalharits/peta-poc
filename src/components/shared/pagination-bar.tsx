@@ -30,7 +30,7 @@ export function PaginationBar({ page, pageCount, onPageChange, summary, pageSize
           <div className="flex items-center gap-2">
             <span id="rows-per-page">Rows per page</span>
             <Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange(Number(value))}>
-              <SelectTrigger aria-labelledby="rows-per-page" className="h-8 w-[72px]">
+              <SelectTrigger aria-labelledby="rows-per-page" className="w-[72px] data-[size=default]:h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
