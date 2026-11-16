@@ -2,11 +2,8 @@
 
 import { useState } from "react";
 import type { SortingState } from "@tanstack/react-table";
-import { SearchX } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/shared/data-table/data-table";
 import type { RowSelection } from "@/components/shared/data-table/selection-cells";
-import { EmptyState } from "@/components/shared/empty-state";
 import { PageTitle } from "@/components/shared/page-title";
 import { PaginationBar } from "@/components/shared/pagination-bar";
 import type { Talent } from "@/lib/data/talent-management";
@@ -15,7 +12,9 @@ import { toastSuccess } from "@/lib/toast";
 import { DeleteTalentsDialog } from "./delete-talents-dialog";
 import { deletedToastDescription } from "./talent-count";
 import { TALENT_TABLE_COLUMNS, talentSortValue } from "./talent-columns";
-import { TalentEmpty } from "./talent-empty";
+import { FilterDialog } from "./filter-dialog";
+import { TalentEmpty, TalentNoMatch } from "./talent-empty";
+import { EMPTY_FILTERS, countActiveFilters, matchesFilters, type TalentFilters } from "./talent-filters";
 import { TalentToolbar } from "./talent-toolbar";
 
 export type TalentListState = "empty" | "loading";
@@ -29,6 +28,7 @@ export interface TalentListDemo {
   state?: TalentListState;
   preselect?: number;
   openDelete?: boolean;
+  openFilter?: boolean;
 }
 
 function firstRowsSelection(talents: Talent[], count: number): RowSelection {
@@ -44,6 +44,8 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [selection, setSelection] = useState<RowSelection>(() => firstRowsSelection(initialTalents, demo.preselect ?? 0));
   const [deleteOpen, setDeleteOpen] = useState(Boolean(demo.openDelete && demo.preselect));
+  const [filters, setFilters] = useState<TalentFilters>(EMPTY_FILTERS);
+  const [filterOpen, setFilterOpen] = useState(Boolean(demo.openFilter));
 
   if (demo.state === "empty") return <TalentEmpty title={TITLE} />;
 
@@ -57,7 +59,15 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
     setQuery(value);
     setPage(1);
   });
-  const clearFilters = () => changeQuery("");
+  const applyFilters = (next: TalentFilters) => changeView(() => {
+    setFilters(next);
+    setPage(1);
+  });
+  const clearFilters = () => changeView(() => {
+    setQuery("");
+    setFilters(EMPTY_FILTERS);
+    setPage(1);
+  });
   const deleteSelected = () => {
     setTalents((current) => current.filter((talent) => !selection[talent.id]));
     setSelection({});
@@ -65,7 +75,10 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
   };
 
   const trimmedQuery = query.trim();
-  const filtered = talents.filter((talent) => talent.fullName.toLowerCase().includes(trimmedQuery.toLowerCase()));
+  const activeFilterCount = countActiveFilters(filters);
+  const filtered = talents.filter(
+    (talent) => talent.fullName.toLowerCase().includes(trimmedQuery.toLowerCase()) && matchesFilters(talent, filters),
+  );
   const { pageRows, pageCount, from, to } = paginate(sortRows(filtered, sorting, talentSortValue), page, pageSize);
   const loading = demo.state === "loading";
   const summary = filtered.length ? `Showing ${from}–${to} of ${filtered.length} talents` : "No talents to show";
@@ -90,32 +103,15 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
           <TalentToolbar
             query={query}
             onQueryChange={changeQuery}
-            hasFilters={trimmedQuery !== ""}
+            hasFilters={trimmedQuery !== "" || activeFilterCount > 0}
             onClearFilters={clearFilters}
             selectedCount={selectedIds.length}
             onDeleteSelected={() => setDeleteOpen(true)}
+            activeFilterCount={activeFilterCount}
+            onOpenFilter={() => setFilterOpen(true)}
           />
         }
-        emptyState={
-          <EmptyState
-            variant="inline"
-            tone="neutral"
-            icon={SearchX}
-            title="No talents found"
-            description={
-              trimmedQuery
-                ? `No talents match “${trimmedQuery}”. Check the spelling or clear the filters.`
-                : "No talents match these filters. Try different filters or clear them."
-            }
-            action={
-              <Button variant="outline" onClick={clearFilters}>
-                Clear filters
-              </Button>
-            }
-            // Pinned to the visible part of the wide table: 100vw minus sidebar (256), page padding (80) and card border (2).
-            className="sticky left-0 w-[calc(100vw-338px)]"
-          />
-        }
+        emptyState={<TalentNoMatch query={trimmedQuery} onClearFilters={clearFilters} />}
         footer={
           loading ? (
             "Loading talents…"
@@ -135,6 +131,7 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
         }
       />
       <DeleteTalentsDialog open={deleteOpen} onOpenChange={setDeleteOpen} count={selectedIds.length} onConfirm={deleteSelected} />
+      <FilterDialog key={String(filterOpen)} open={filterOpen} onOpenChange={setFilterOpen} filters={filters} onApply={applyFilters} />
     </>
   );
 }

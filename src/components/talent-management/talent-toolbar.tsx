@@ -2,9 +2,11 @@
 
 import { ListFilter, Plus, Settings2, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClearFiltersButton, ToolbarSearch } from "@/components/shared/data-table/table-toolbar";
 import { IconButton } from "@/components/shared/icon-button";
 import { toastInfo } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 
 /** Placeholder until TM04–TM07 wire up the dialogs. */
 export const comingLater = () => toastInfo("Coming in a later step");
@@ -31,13 +33,49 @@ interface TalentToolbarProps {
   onClearFilters: () => void;
   selectedCount: number;
   onDeleteSelected: () => void;
+  activeFilterCount: number;
+  onOpenFilter: () => void;
 }
 
-export function TalentToolbar({ query, onQueryChange, hasFilters, onClearFilters, selectedCount, onDeleteSelected }: TalentToolbarProps) {
+/** DESIGN-SYSTEM §11.8: green border and a count pill when filters are active. */
+function FilterButton({ count, onClick }: { count: number; onClick: () => void }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label={count ? `Filter, ${count} active` : "Filter"}
+          className={cn("relative", count > 0 && "border-primary")}
+          onClick={onClick}
+        >
+          <ListFilter aria-hidden />
+          {count > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground ring-2 ring-white" aria-hidden>
+              {count}
+            </span>
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Filter</TooltipContent>
+    </Tooltip>
+  );
+}
+
+export function TalentToolbar({
+  query,
+  onQueryChange,
+  hasFilters,
+  onClearFilters,
+  selectedCount,
+  onDeleteSelected,
+  activeFilterCount,
+  onOpenFilter,
+}: TalentToolbarProps) {
   return (
     <>
       <ToolbarSearch value={query} onChange={onQueryChange} placeholder="Search by name…" ariaLabel="Search by name" />
-      <IconButton label="Filter" icon={ListFilter} variant="outline" onClick={comingLater} />
+      <FilterButton count={activeFilterCount} onClick={onOpenFilter} />
       <IconButton label="View settings" icon={Settings2} variant="outline" onClick={comingLater} />
       {hasFilters && <ClearFiltersButton onClick={onClearFilters} />}
       <div className="ml-auto flex items-center gap-3">

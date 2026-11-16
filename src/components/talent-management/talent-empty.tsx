@@ -1,4 +1,5 @@
-import { Users } from "lucide-react";
+import { SearchX, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageTitle } from "@/components/shared/page-title";
 import { TalentActions } from "./talent-toolbar";
@@ -21,5 +22,29 @@ export function TalentEmpty({ title }: { title: string }) {
         }
       />
     </>
+  );
+}
+
+/** TM-01b: the search or filters leave no rows. */
+export function TalentNoMatch({ query, onClearFilters }: { query: string; onClearFilters: () => void }) {
+  return (
+    <EmptyState
+      variant="inline"
+      tone="neutral"
+      icon={SearchX}
+      title="No talents found"
+      description={
+        query
+          ? `No talents match “${query}”. Check the spelling or clear the filters.`
+          : "No talents match these filters. Try different filters or clear them."
+      }
+      action={
+        <Button variant="outline" onClick={onClearFilters}>
+          Clear filters
+        </Button>
+      }
+      // Pinned to the visible part of the wide table: 100vw minus sidebar (256), page padding (80) and card border (2).
+      className="sticky left-0 w-[calc(100vw-338px)]"
+    />
   );
 }
