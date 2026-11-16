@@ -26,8 +26,11 @@ export function PageHeader({ items }: { items: BreadcrumbEntry[] }) {
           {items.map((item, index) => (
             <Fragment key={`${item.label}-${index}`}>
               <BreadcrumbItem>
-                {index === lastIndex || !item.href ? (
+                {index === lastIndex ? (
                   <BreadcrumbPage className="font-medium text-foreground">{item.label}</BreadcrumbPage>
+                ) : !item.href ? (
+                  // A plain-text group crumb such as "Settings": muted like a link, but not clickable.
+                  <span>{item.label}</span>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link href={item.href}>{item.label}</Link>
