@@ -5,6 +5,8 @@ const BASE_PATH = "/peta-poc";
 
 const nextConfig: NextConfig = {
   basePath: BASE_PATH,
+  // The bare host (http://<host>:<port>/) sends people to the app instead of a 404.
+  redirects: async () => [{ source: "/", destination: BASE_PATH, basePath: false, permanent: false }],
   output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
