@@ -21,6 +21,8 @@ interface ConfirmDialogProps {
   /** destructive = Delete, Deactivate, Reject; default = Reactivate. */
   tone?: "destructive" | "default";
   onConfirm: () => void;
+  /** Where focus goes on close, when the element that opened it is gone (e.g. a menu item). Call preventDefault to override. */
+  onCloseAutoFocus?: (event: Event) => void;
 }
 
 /** DESIGN-SYSTEM §11.3. Radix focuses Cancel first; Esc and Cancel close without confirming. */
@@ -33,12 +35,13 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   tone = "destructive",
   onConfirm,
+  onCloseAutoFocus,
 }: ConfirmDialogProps) {
   const destructive = tone === "destructive";
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="gap-6 p-6 sm:max-w-[440px]">
+      <AlertDialogContent className="gap-6 p-6 sm:max-w-[440px]" onCloseAutoFocus={onCloseAutoFocus}>
         <div className="flex items-start gap-4">
           <span
             className={cn(

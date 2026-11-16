@@ -1,11 +1,10 @@
 "use client";
 
-import { EllipsisVertical } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { IconButton } from "@/components/shared/icon-button";
 import { SectionCard } from "@/components/shared/section-card";
 import type { PetaUser } from "@/lib/data/user-management";
 import { cn } from "@/lib/utils";
+import { UserRowMenu, type RowMenuChoice } from "./user-row-menu";
 import { UserStatusBadge } from "./user-status-badge";
 
 export const HEAD_CLASSES = "h-11 px-4 text-[13px] font-medium text-muted-foreground";
@@ -22,8 +21,16 @@ export function NoMatchRow({ colSpan, children }: { colSpan: number; children: R
   );
 }
 
+interface UsersTableProps {
+  users: PetaUser[];
+  query: string;
+  /** Demo: the username whose menu starts open (?open=menu). */
+  menuOpenFor?: string;
+  onChoose: (user: PetaUser, choice: RowMenuChoice) => void;
+}
+
 /** UM-01. Users in data order; no sorting or pagination, so it's a plain shadcn Table. */
-export function UsersTable({ users, query }: { users: PetaUser[]; query: string }) {
+export function UsersTable({ users, query, menuOpenFor, onChoose }: UsersTableProps) {
   return (
     <SectionCard contentClassName="p-0 gap-0">
       <Table aria-label="Users">
@@ -51,7 +58,11 @@ export function UsersTable({ users, query }: { users: PetaUser[]; query: string 
                   <UserStatusBadge status={user.status} />
                 </TableCell>
                 <TableCell className="px-4 text-right">
-                  <IconButton label={`More actions for ${user.username}`} icon={EllipsisVertical} size="icon-sm" />
+                  <UserRowMenu
+                    user={user}
+                    defaultOpen={user.username === menuOpenFor}
+                    onChoose={(choice) => onChoose(user, choice)}
+                  />
                 </TableCell>
               </TableRow>
             ))

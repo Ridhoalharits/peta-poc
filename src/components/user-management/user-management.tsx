@@ -4,28 +4,57 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { PageTitle } from "@/components/shared/page-title";
 import { SectionCard } from "@/components/shared/section-card";
 import type { PetaUser } from "@/lib/data/user-management";
+import { toastSuccess } from "@/lib/toast";
 import { CountPill } from "./count-pill";
+import { ACTION_TOAST, CONFIRM_COPY, DEMO_USER, applyUserAction, type ConfirmKind, type UserAction } from "./user-actions";
 import { UsersTable } from "./users-table";
 
 export type UserTab = "users" | "requests";
+export type UserDemoOpen = keyof typeof DEMO_USER;
+
+interface Confirm {
+  kind: ConfirmKind;
+  username: string;
+}
 
 interface UserManagementProps {
   initialUsers: PetaUser[];
   initialTab?: UserTab;
+  /** Demo: ?open=menu | deactivate | reactivate | reject. */
+  demoOpen?: UserDemoOpen;
+}
+
+function initialConfirm(demoOpen?: UserDemoOpen): Confirm | null {
+  if (!demoOpen || demoOpen === "menu") return null;
+  return { kind: demoOpen, username: DEMO_USER[demoOpen] };
 }
 
 /** UM-01 / UM-04. Owns the users for the session, so both tabs and both pills stay in sync. */
-export function UserManagement({ initialUsers, initialTab = "users" }: UserManagementProps) {
-  const [users] = useState(initialUsers); // UM03 and UM04 change statuses and remove rejected requests.
+export function UserManagement({ initialUsers, initialTab = "users", demoOpen }: UserManagementProps) {
+  const [users, setUsers] = useState(initialUsers);
   const [tab, setTab] = useState<UserTab>(initialTab);
   const [query, setQuery] = useState("");
+  // The last confirm stays set while the dialog fades out, so its text doesn't blank mid-animation.
+  const [confirm, setConfirm] = useState<Confirm | null>(() => initialConfirm(demoOpen));
+  const [confirmOpen, setConfirmOpen] = useState(confirm !== null);
+  const askConfirm = (next: Confirm) => {
+    setConfirm(next);
+    setConfirmOpen(true);
+  };
 
   const trimmedQuery = query.trim();
   const matches = (user: PetaUser) => user.username.toLowerCase().includes(trimmedQuery.toLowerCase());
   const pendingCount = users.filter((user) => user.status === "Pending Request").length;
+
+  const runAction = (action: UserAction, username: string) => {
+    setUsers((current) => applyUserAction(current, action, username));
+    toastSuccess(ACTION_TOAST[action].title, ACTION_TOAST[action].description(username));
+  };
+  const copy = confirm ? CONFIRM_COPY[confirm.kind] : null;
 
   return (
     <>
@@ -55,12 +84,37 @@ export function UserManagement({ initialUsers, initialTab = "users" }: UserManag
           </div>
         </div>
         <TabsContent value="users">
-          <UsersTable users={users.filter(matches)} query={trimmedQuery} />
+          <UsersTable
+            users={users.filter(matches)}
+            query={trimmedQuery}
+            menuOpenFor={demoOpen === "menu" ? DEMO_USER.menu : undefined}
+            onChoose={(user, choice) =>
+              choice === "requests" ? setTab("requests") : askConfirm({ kind: choice, username: user.username })
+            }
+          />
         </TabsContent>
         <TabsContent value="requests">
           <SectionCard>{null}</SectionCard>
         </TabsContent>
       </Tabs>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={copy?.title ?? ""}
+        message={confirm && copy ? copy.message(confirm.username) : ""}
+        confirmLabel={copy?.confirmLabel ?? ""}
+        tone={copy?.tone}
+        onConfirm={() => confirm && runAction(confirm.kind, confirm.username)}
+        onCloseAutoFocus={(event) => {
+          // Back to the button that started it: the row's menu button, or the Reject button on the Requests tab.
+          const label = confirm?.kind === "reject" ? `Reject ${confirm.username}` : `More actions for ${confirm?.username}`;
+          const opener = document.querySelector<HTMLElement>(`button[aria-label="${label}"]`);
+          if (opener) {
+            event.preventDefault();
+            opener.focus();
+          }
+        }}
+      />
     </>
   );
 }
