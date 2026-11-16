@@ -92,7 +92,6 @@ export function AppSidebar() {
           alt="Kalbe"
           width={LOGO_WIDTH}
           height={LOGO_HEIGHT}
-          className="h-10 w-auto"
           priority
         />
         <span className="font-heading text-xl font-bold tracking-[0.06em]">PETA</span>
