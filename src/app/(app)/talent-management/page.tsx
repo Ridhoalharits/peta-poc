@@ -1,16 +1,33 @@
 import { Suspense } from "react";
 import { PageMain } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
-import { TalentList, type TalentListState } from "@/components/talent-management/talent-list";
+import { ToastOnMount } from "@/components/shared/toast-on-mount";
+import { deletedToastDescription } from "@/components/talent-management/talent-count";
+import { TalentList, type TalentListDemo, type TalentListState } from "@/components/talent-management/talent-list";
 import { listTalents } from "@/lib/data/talent-management";
 import { param, type SearchParamsRecord } from "@/lib/demo";
 
 const DEMO_STATES: readonly TalentListState[] = ["empty", "loading"];
+const DEMO_DELETED_COUNT = 3;
 
 async function TalentListFromParams({ searchParams }: { searchParams: Promise<SearchParamsRecord> }) {
   const sp = await searchParams;
-  const state = DEMO_STATES.find((demoState) => demoState === param(sp, "state"));
-  return <TalentList initialTalents={listTalents()} state={state} />;
+  const hidden = param(sp, "hide");
+  const demo: TalentListDemo = {
+    state: DEMO_STATES.find((demoState) => demoState === param(sp, "state")),
+    preselect: Number(param(sp, "select")) || undefined,
+    openDelete: param(sp, "open") === "delete",
+  };
+  const talents = listTalents().filter((talent) => talent.id !== hidden);
+
+  return (
+    <>
+      <TalentList initialTalents={talents} demo={demo} />
+      {param(sp, "toast") === "deleted" && (
+        <ToastOnMount title="Talents deleted" description={deletedToastDescription(DEMO_DELETED_COUNT)} />
+      )}
+    </>
+  );
 }
 
 export default function TalentManagementPage({ searchParams }: PageProps<"/talent-management">) {

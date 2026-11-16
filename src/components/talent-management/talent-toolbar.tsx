@@ -1,6 +1,6 @@
 "use client";
 
-import { ListFilter, Plus, Settings2, Upload } from "lucide-react";
+import { ListFilter, Plus, Settings2, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClearFiltersButton, ToolbarSearch } from "@/components/shared/data-table/table-toolbar";
 import { IconButton } from "@/components/shared/icon-button";
@@ -29,9 +29,11 @@ interface TalentToolbarProps {
   onQueryChange: (query: string) => void;
   hasFilters: boolean;
   onClearFilters: () => void;
+  selectedCount: number;
+  onDeleteSelected: () => void;
 }
 
-export function TalentToolbar({ query, onQueryChange, hasFilters, onClearFilters }: TalentToolbarProps) {
+export function TalentToolbar({ query, onQueryChange, hasFilters, onClearFilters, selectedCount, onDeleteSelected }: TalentToolbarProps) {
   return (
     <>
       <ToolbarSearch value={query} onChange={onQueryChange} placeholder="Search by name…" ariaLabel="Search by name" />
@@ -39,7 +41,14 @@ export function TalentToolbar({ query, onQueryChange, hasFilters, onClearFilters
       <IconButton label="View settings" icon={Settings2} variant="outline" onClick={comingLater} />
       {hasFilters && <ClearFiltersButton onClick={onClearFilters} />}
       <div className="ml-auto flex items-center gap-3">
-        <TalentActions />
+        {selectedCount > 0 ? (
+          <Button variant="destructive" onClick={onDeleteSelected}>
+            <Trash2 aria-hidden />
+            Delete Selected
+          </Button>
+        ) : (
+          <TalentActions />
+        )}
       </div>
     </>
   );

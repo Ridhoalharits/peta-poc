@@ -5,7 +5,7 @@ import { TALENT_COLUMNS, type Talent, type TalentColumn, type TalentColumnKey } 
 import { formatDate } from "@/lib/format";
 
 const DATE_KEYS: readonly TalentColumnKey[] = ["dob", "hireDate"];
-const NAME_COLUMN_LEFT = 0; // TM03 moves it to 48 px when the checkbox column arrives.
+const NAME_COLUMN_LEFT = 48; // Right of the 48 px checkbox column (DESIGN-SYSTEM §11.7).
 
 const helper = createDataTableColumnHelper<Talent>();
 
