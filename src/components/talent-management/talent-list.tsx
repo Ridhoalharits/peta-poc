@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { SortingState } from "@tanstack/react-table";
 import { DataTable } from "@/components/shared/data-table/data-table";
 import type { RowSelection } from "@/components/shared/data-table/selection-cells";
 import { PageTitle } from "@/components/shared/page-title";
 import { PaginationBar } from "@/components/shared/pagination-bar";
-import type { Talent } from "@/lib/data/talent-management";
+import type { Talent, TalentColumnKey } from "@/lib/data/talent-management";
 import { paginate, sortRows } from "@/lib/table";
 import { toastSuccess } from "@/lib/toast";
 import { DeleteTalentsDialog } from "./delete-talents-dialog";
@@ -16,6 +16,7 @@ import { FilterDialog } from "./filter-dialog";
 import { TalentEmpty, TalentNoMatch } from "./talent-empty";
 import { EMPTY_FILTERS, countActiveFilters, matchesFilters, type TalentFilters } from "./talent-filters";
 import { TalentToolbar } from "./talent-toolbar";
+import { ALL_COLUMN_KEYS, ViewSettingsDialog } from "./view-settings-dialog";
 
 export type TalentListState = "empty" | "loading";
 
@@ -29,6 +30,7 @@ export interface TalentListDemo {
   preselect?: number;
   openDelete?: boolean;
   openFilter?: boolean;
+  openColumns?: boolean;
 }
 
 function firstRowsSelection(talents: Talent[], count: number): RowSelection {
@@ -46,6 +48,12 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
   const [deleteOpen, setDeleteOpen] = useState(Boolean(demo.openDelete && demo.preselect));
   const [filters, setFilters] = useState<TalentFilters>(EMPTY_FILTERS);
   const [filterOpen, setFilterOpen] = useState(Boolean(demo.openFilter));
+  const [visibleColumns, setVisibleColumns] = useState<TalentColumnKey[]>(ALL_COLUMN_KEYS);
+  const [columnsOpen, setColumnsOpen] = useState(Boolean(demo.openColumns));
+  const tableColumns = useMemo(
+    () => TALENT_TABLE_COLUMNS.filter((column) => column.id === "fullName" || visibleColumns.includes(column.id as TalentColumnKey)),
+    [visibleColumns],
+  );
 
   if (demo.state === "empty") return <TalentEmpty title={TITLE} />;
 
@@ -63,6 +71,11 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
     setFilters(next);
     setPage(1);
   });
+  // A hidden column can't stay sorted: fall back to Full Name ascending.
+  const applyColumns = (next: TalentColumnKey[]) => {
+    setVisibleColumns(next);
+    if (!sorting.every((sort) => sort.id === "fullName" || next.includes(sort.id as TalentColumnKey))) setSorting(DEFAULT_SORTING);
+  };
   const clearFilters = () => changeView(() => {
     setQuery("");
     setFilters(EMPTY_FILTERS);
@@ -88,7 +101,7 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
       <PageTitle title={TITLE} />
       <DataTable
         ariaLabel="Talents"
-        columns={TALENT_TABLE_COLUMNS}
+        columns={tableColumns}
         data={pageRows}
         loading={loading}
         skeletonRows={DEFAULT_PAGE_SIZE}
@@ -109,6 +122,7 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
             onDeleteSelected={() => setDeleteOpen(true)}
             activeFilterCount={activeFilterCount}
             onOpenFilter={() => setFilterOpen(true)}
+            onOpenViewSettings={() => setColumnsOpen(true)}
           />
         }
         emptyState={<TalentNoMatch query={trimmedQuery} onClearFilters={clearFilters} />}
@@ -132,6 +146,13 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
       />
       <DeleteTalentsDialog open={deleteOpen} onOpenChange={setDeleteOpen} count={selectedIds.length} onConfirm={deleteSelected} />
       <FilterDialog key={String(filterOpen)} open={filterOpen} onOpenChange={setFilterOpen} filters={filters} onApply={applyFilters} />
+      <ViewSettingsDialog
+        key={`columns-${columnsOpen}`}
+        open={columnsOpen}
+        onOpenChange={setColumnsOpen}
+        visibleColumns={visibleColumns}
+        onApply={applyColumns}
+      />
     </>
   );
 }

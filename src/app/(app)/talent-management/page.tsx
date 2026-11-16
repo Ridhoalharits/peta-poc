@@ -18,6 +18,7 @@ async function TalentListFromParams({ searchParams }: { searchParams: Promise<Se
     preselect: Number(param(sp, "select")) || undefined,
     openDelete: param(sp, "open") === "delete",
     openFilter: param(sp, "open") === "filter",
+    openColumns: param(sp, "open") === "columns",
   };
   const talents = listTalents().filter((talent) => talent.id !== hidden);
 

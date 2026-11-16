@@ -8,7 +8,7 @@ import { IconButton } from "@/components/shared/icon-button";
 import { toastInfo } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
-/** Placeholder until TM04–TM07 wire up the dialogs. */
+/** Placeholder until TM06 and TM07 wire up Add Talent and Bulk Import. */
 export const comingLater = () => toastInfo("Coming in a later step");
 
 export function TalentActions() {
@@ -35,6 +35,7 @@ interface TalentToolbarProps {
   onDeleteSelected: () => void;
   activeFilterCount: number;
   onOpenFilter: () => void;
+  onOpenViewSettings: () => void;
 }
 
 /** DESIGN-SYSTEM §11.8: green border and a count pill when filters are active. */
@@ -71,12 +72,13 @@ export function TalentToolbar({
   onDeleteSelected,
   activeFilterCount,
   onOpenFilter,
+  onOpenViewSettings,
 }: TalentToolbarProps) {
   return (
     <>
       <ToolbarSearch value={query} onChange={onQueryChange} placeholder="Search by name…" ariaLabel="Search by name" />
       <FilterButton count={activeFilterCount} onClick={onOpenFilter} />
-      <IconButton label="View settings" icon={Settings2} variant="outline" onClick={comingLater} />
+      <IconButton label="View settings" icon={Settings2} variant="outline" onClick={onOpenViewSettings} />
       {hasFilters && <ClearFiltersButton onClick={onClearFilters} />}
       <div className="ml-auto flex items-center gap-3">
         {selectedCount > 0 ? (
