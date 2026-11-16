@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { PageTitle } from "@/components/shared/page-title";
-import { SectionCard } from "@/components/shared/section-card";
 import type { PetaUser } from "@/lib/data/user-management";
 import { toastSuccess } from "@/lib/toast";
 import { CountPill } from "./count-pill";
+import { RequestsTable } from "./requests-table";
 import { ACTION_TOAST, CONFIRM_COPY, DEMO_USER, applyUserAction, type ConfirmKind, type UserAction } from "./user-actions";
 import { UsersTable } from "./users-table";
 
@@ -48,7 +48,8 @@ export function UserManagement({ initialUsers, initialTab = "users", demoOpen }:
 
   const trimmedQuery = query.trim();
   const matches = (user: PetaUser) => user.username.toLowerCase().includes(trimmedQuery.toLowerCase());
-  const pendingCount = users.filter((user) => user.status === "Pending Request").length;
+  const pending = users.filter((user) => user.status === "Pending Request");
+  const pendingCount = pending.length;
 
   const runAction = (action: UserAction, username: string) => {
     setUsers((current) => applyUserAction(current, action, username));
@@ -94,7 +95,13 @@ export function UserManagement({ initialUsers, initialTab = "users", demoOpen }:
           />
         </TabsContent>
         <TabsContent value="requests">
-          <SectionCard>{null}</SectionCard>
+          <RequestsTable
+            requests={pending.filter(matches)}
+            hasPending={pending.length > 0}
+            query={trimmedQuery}
+            onApprove={(username) => runAction("approve", username)}
+            onReject={(username) => askConfirm({ kind: "reject", username })}
+          />
         </TabsContent>
       </Tabs>
       <ConfirmDialog
