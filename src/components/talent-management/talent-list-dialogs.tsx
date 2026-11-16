@@ -2,11 +2,18 @@
 
 import type { TalentColumnKey } from "@/lib/data/talent-management";
 import { toastSuccess } from "@/lib/toast";
+import { BulkImportDialog, type ImportStep } from "./bulk-import-dialog";
 import { DeleteTalentsDialog } from "./delete-talents-dialog";
 import { FilterDialog } from "./filter-dialog";
 import type { TalentFilters } from "./talent-filters";
 import { TalentFormDialog } from "./talent-form-dialog";
 import { ViewSettingsDialog } from "./view-settings-dialog";
+
+/** ?open=import-review / import-result start the import at a later step. */
+const IMPORT_DEMO_STEP: Partial<Record<TalentDialog, ImportStep>> = {
+  "import-review": "review",
+  "import-result": "result",
+};
 
 import type { TalentDialog } from "./talent-dialogs";
 
@@ -53,6 +60,12 @@ export function TalentListDialogs({
         onOpenChange={setOpen("add")}
         showErrors={open === "add-errors"}
         onSaved={(values) => toastSuccess("Talent added", `${values.fullName} was added to PETA.`)}
+      />
+      <BulkImportDialog
+        key={`import-${isOpen("import", "import-review", "import-result")}`}
+        open={isOpen("import", "import-review", "import-result")}
+        onOpenChange={setOpen("import")}
+        initialStep={IMPORT_DEMO_STEP[open ?? "import"] ?? "upload"}
       />
     </>
   );

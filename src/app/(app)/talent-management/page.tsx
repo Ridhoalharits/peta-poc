@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { PageMain } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { ToastOnMount } from "@/components/shared/toast-on-mount";
-import { deletedToastDescription } from "@/components/talent-management/talent-count";
+import { deletedToastDescription, importedToastDescription } from "@/components/talent-management/talent-count";
 import { TALENT_DIALOGS } from "@/components/talent-management/talent-dialogs";
 import { TalentList, type TalentListDemo, type TalentListState } from "@/components/talent-management/talent-list";
 import { listTalents } from "@/lib/data/talent-management";
@@ -31,6 +31,7 @@ async function TalentListFromParams({ searchParams }: { searchParams: Promise<Se
         <ToastOnMount title="Talents deleted" description={deletedToastDescription(hidden ? 1 : DEMO_DELETED_COUNT)} />
       )}
       {toast === "added" && <ToastOnMount title="Talent added" description={`${DEMO_ADDED_NAME} was added to PETA.`} />}
+      {toast === "imported" && <ToastOnMount title="Import finished" description={importedToastDescription()} />}
     </>
   );
 }
