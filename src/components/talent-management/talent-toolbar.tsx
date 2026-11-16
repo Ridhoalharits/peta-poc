@@ -5,37 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClearFiltersButton, ToolbarSearch } from "@/components/shared/data-table/table-toolbar";
 import { IconButton } from "@/components/shared/icon-button";
-import { toastInfo } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import type { TalentDialog } from "./talent-dialogs";
 
-/** Placeholder until TM06 and TM07 wire up Add Talent and Bulk Import. */
-export const comingLater = () => toastInfo("Coming in a later step");
+type OpenDialog = (dialog: TalentDialog) => void;
 
-export function TalentActions() {
+export function TalentActions({ onOpen }: { onOpen: OpenDialog }) {
   return (
     <>
-      <Button variant="outline" onClick={comingLater}>
+      <Button variant="outline" onClick={() => onOpen("import")}>
         <Upload aria-hidden />
         Bulk Import
       </Button>
-      <Button onClick={comingLater}>
+      <Button onClick={() => onOpen("add")}>
         <Plus aria-hidden />
         Add Talent
       </Button>
     </>
   );
-}
-
-interface TalentToolbarProps {
-  query: string;
-  onQueryChange: (query: string) => void;
-  hasFilters: boolean;
-  onClearFilters: () => void;
-  selectedCount: number;
-  onDeleteSelected: () => void;
-  activeFilterCount: number;
-  onOpenFilter: () => void;
-  onOpenViewSettings: () => void;
 }
 
 /** DESIGN-SYSTEM §11.8: green border and a count pill when filters are active. */
@@ -52,7 +39,10 @@ function FilterButton({ count, onClick }: { count: number; onClick: () => void }
         >
           <ListFilter aria-hidden />
           {count > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground ring-2 ring-white" aria-hidden>
+            <span
+              className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground ring-2 ring-white"
+              aria-hidden
+            >
               {count}
             </span>
           )}
@@ -63,31 +53,31 @@ function FilterButton({ count, onClick }: { count: number; onClick: () => void }
   );
 }
 
-export function TalentToolbar({
-  query,
-  onQueryChange,
-  hasFilters,
-  onClearFilters,
-  selectedCount,
-  onDeleteSelected,
-  activeFilterCount,
-  onOpenFilter,
-  onOpenViewSettings,
-}: TalentToolbarProps) {
+interface TalentToolbarProps {
+  query: string;
+  onQueryChange: (query: string) => void;
+  hasFilters: boolean;
+  onClearFilters: () => void;
+  selectedCount: number;
+  activeFilterCount: number;
+  onOpen: OpenDialog;
+}
+
+export function TalentToolbar({ query, onQueryChange, hasFilters, onClearFilters, selectedCount, activeFilterCount, onOpen }: TalentToolbarProps) {
   return (
     <>
       <ToolbarSearch value={query} onChange={onQueryChange} placeholder="Search by name…" ariaLabel="Search by name" />
-      <FilterButton count={activeFilterCount} onClick={onOpenFilter} />
-      <IconButton label="View settings" icon={Settings2} variant="outline" onClick={onOpenViewSettings} />
+      <FilterButton count={activeFilterCount} onClick={() => onOpen("filter")} />
+      <IconButton label="View settings" icon={Settings2} variant="outline" onClick={() => onOpen("columns")} />
       {hasFilters && <ClearFiltersButton onClick={onClearFilters} />}
       <div className="ml-auto flex items-center gap-3">
         {selectedCount > 0 ? (
-          <Button variant="destructive" onClick={onDeleteSelected}>
+          <Button variant="destructive" onClick={() => onOpen("delete")}>
             <Trash2 aria-hidden />
             Delete Selected
           </Button>
         ) : (
-          <TalentActions />
+          <TalentActions onOpen={onOpen} />
         )}
       </div>
     </>

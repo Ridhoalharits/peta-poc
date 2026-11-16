@@ -9,14 +9,14 @@ import { PaginationBar } from "@/components/shared/pagination-bar";
 import type { Talent, TalentColumnKey } from "@/lib/data/talent-management";
 import { paginate, sortRows } from "@/lib/table";
 import { toastSuccess } from "@/lib/toast";
-import { DeleteTalentsDialog } from "./delete-talents-dialog";
-import { deletedToastDescription } from "./talent-count";
 import { TALENT_TABLE_COLUMNS, talentSortValue } from "./talent-columns";
-import { FilterDialog } from "./filter-dialog";
+import { deletedToastDescription } from "./talent-count";
 import { TalentEmpty, TalentNoMatch } from "./talent-empty";
 import { EMPTY_FILTERS, countActiveFilters, matchesFilters, type TalentFilters } from "./talent-filters";
+import type { TalentDialog } from "./talent-dialogs";
+import { TalentListDialogs } from "./talent-list-dialogs";
 import { TalentToolbar } from "./talent-toolbar";
-import { ALL_COLUMN_KEYS, ViewSettingsDialog } from "./view-settings-dialog";
+import { ALL_COLUMN_KEYS } from "./view-settings-dialog";
 
 export type TalentListState = "empty" | "loading";
 
@@ -24,13 +24,11 @@ const DEFAULT_SORTING: SortingState = [{ id: "fullName", desc: false }];
 const DEFAULT_PAGE_SIZE = 10;
 const TITLE = "Talent Management";
 
-/** Demo params: ?select=3 ticks the first rows of page 1, ?open=delete opens the confirm. */
+/** Demo params: ?state, ?select=3 (ticks the first rows of page 1), ?open={dialog}. */
 export interface TalentListDemo {
   state?: TalentListState;
   preselect?: number;
-  openDelete?: boolean;
-  openFilter?: boolean;
-  openColumns?: boolean;
+  open?: TalentDialog;
 }
 
 function firstRowsSelection(talents: Talent[], count: number): RowSelection {
@@ -41,24 +39,22 @@ function firstRowsSelection(talents: Talent[], count: number): RowSelection {
 export function TalentList({ initialTalents, demo = {} }: { initialTalents: Talent[]; demo?: TalentListDemo }) {
   const [talents, setTalents] = useState(initialTalents);
   const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState<TalentFilters>(EMPTY_FILTERS);
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [selection, setSelection] = useState<RowSelection>(() => firstRowsSelection(initialTalents, demo.preselect ?? 0));
-  const [deleteOpen, setDeleteOpen] = useState(Boolean(demo.openDelete && demo.preselect));
-  const [filters, setFilters] = useState<TalentFilters>(EMPTY_FILTERS);
-  const [filterOpen, setFilterOpen] = useState(Boolean(demo.openFilter));
   const [visibleColumns, setVisibleColumns] = useState<TalentColumnKey[]>(ALL_COLUMN_KEYS);
-  const [columnsOpen, setColumnsOpen] = useState(Boolean(demo.openColumns));
+  const [openDialog, setOpenDialog] = useState<TalentDialog | null>(demo.open ?? null);
   const tableColumns = useMemo(
-    () => TALENT_TABLE_COLUMNS.filter((column) => column.id === "fullName" || visibleColumns.includes(column.id as TalentColumnKey)),
+    () => TALENT_TABLE_COLUMNS.filter((column) => visibleColumns.includes(column.id as TalentColumnKey)),
     [visibleColumns],
   );
 
-  if (demo.state === "empty") return <TalentEmpty title={TITLE} />;
+  if (demo.state === "empty") return <TalentEmpty title={TITLE} onOpen={setOpenDialog} />;
 
-  const selectedIds = Object.keys(selection);
-  // Simple rule: the selection clears whenever the visible rows change (page, page size, search).
+  const selectedCount = Object.keys(selection).length;
+  // Simple rule: the selection clears whenever the visible rows change (page, page size, search, filters).
   const changeView = (apply: () => void) => {
     apply();
     setSelection({});
@@ -71,20 +67,20 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
     setFilters(next);
     setPage(1);
   });
-  // A hidden column can't stay sorted: fall back to Full Name ascending.
-  const applyColumns = (next: TalentColumnKey[]) => {
-    setVisibleColumns(next);
-    if (!sorting.every((sort) => sort.id === "fullName" || next.includes(sort.id as TalentColumnKey))) setSorting(DEFAULT_SORTING);
-  };
   const clearFilters = () => changeView(() => {
     setQuery("");
     setFilters(EMPTY_FILTERS);
     setPage(1);
   });
+  // A hidden column can't stay sorted: fall back to Full Name ascending.
+  const applyColumns = (next: TalentColumnKey[]) => {
+    setVisibleColumns(next);
+    if (!sorting.every((sort) => next.includes(sort.id as TalentColumnKey))) setSorting(DEFAULT_SORTING);
+  };
   const deleteSelected = () => {
     setTalents((current) => current.filter((talent) => !selection[talent.id]));
     setSelection({});
-    toastSuccess("Talents deleted", deletedToastDescription(selectedIds.length));
+    toastSuccess("Talents deleted", deletedToastDescription(selectedCount));
   };
 
   const trimmedQuery = query.trim();
@@ -118,11 +114,9 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
             onQueryChange={changeQuery}
             hasFilters={trimmedQuery !== "" || activeFilterCount > 0}
             onClearFilters={clearFilters}
-            selectedCount={selectedIds.length}
-            onDeleteSelected={() => setDeleteOpen(true)}
+            selectedCount={selectedCount}
             activeFilterCount={activeFilterCount}
-            onOpenFilter={() => setFilterOpen(true)}
-            onOpenViewSettings={() => setColumnsOpen(true)}
+            onOpen={setOpenDialog}
           />
         }
         emptyState={<TalentNoMatch query={trimmedQuery} onClearFilters={clearFilters} />}
@@ -144,14 +138,15 @@ export function TalentList({ initialTalents, demo = {} }: { initialTalents: Tale
           )
         }
       />
-      <DeleteTalentsDialog open={deleteOpen} onOpenChange={setDeleteOpen} count={selectedIds.length} onConfirm={deleteSelected} />
-      <FilterDialog key={String(filterOpen)} open={filterOpen} onOpenChange={setFilterOpen} filters={filters} onApply={applyFilters} />
-      <ViewSettingsDialog
-        key={`columns-${columnsOpen}`}
-        open={columnsOpen}
-        onOpenChange={setColumnsOpen}
+      <TalentListDialogs
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        filters={filters}
+        onApplyFilters={applyFilters}
         visibleColumns={visibleColumns}
-        onApply={applyColumns}
+        onApplyColumns={applyColumns}
+        selectedCount={selectedCount}
+        onConfirmDelete={deleteSelected}
       />
     </>
   );
