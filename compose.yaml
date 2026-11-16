@@ -9,8 +9,7 @@ services:
     image: peta-poc:0.1.0
     container_name: peta-poc
     ports:
-      - "${HOST_PORT:-3000}:3000"
-    #  - "${HOST_PORT:-8016}:5224" # uncomment when on server deployment
+      - "${HOST_PORT:-8016}:3000"
     restart: unless-stopped
     read_only: true
     tmpfs:
