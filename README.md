@@ -1,17 +1,17 @@
 # PETA PoC — web
 
-Front-end-only clickable prototype of **PETA**, a Kalbe web app for HR: Talent Recommendation, Talent Management, Audit Log and User Management. Next.js 16 (App Router, Cache Components), Tailwind CSS v4, shadcn/ui, pnpm. Project rules live in `../CLAUDE.md`; the build plan is in `../docs/backlog/`; the mockups are in `../docs/mockups/`.
+Front-end-only clickable prototype of **PETA**, a Kalbe web app for HR: Talent Recommendation, Talent Management, Audit Log and User Management. Next.js 16 (App Router, Cache Components), Tailwind CSS v4, shadcn/ui, npm. Project rules live in `../CLAUDE.md`; the build plan is in `../docs/backlog/`; the mockups are in `../docs/mockups/`.
 
 ## Run it
 
 Use the Node version in `.nvmrc` (`nvm use`).
 
 ```bash
-pnpm install   # install dependencies
-pnpm dev       # dev server: http://localhost:3000/peta-poc
-pnpm lint      # ESLint
-pnpm build     # production build
-pnpm start     # serve the production build (after pnpm build); add -p 3100 to pick another port
+npm install    # install dependencies
+npm run dev    # dev server: http://localhost:3000/peta-poc
+npm run lint   # ESLint
+npm run build  # production build
+npm start      # serve the production build (after npm run build); add -- -p 3100 to pick another port
 ```
 
 Every URL starts with the base path **`/peta-poc`** (`BASE_PATH` in `next.config.ts`). `http://localhost:3000/` redirects to `/peta-poc`, which opens Talent Recommendation.
@@ -64,9 +64,9 @@ Deliberate differences from the mockups and backlog:
 9. **Unenforced ranges:** only required fields and the 100 % weights total are validated. GPA, age, weight and filter ranges aren't checked for sensible values.
 10. **Number fields** are text inputs with a decimal keyboard, so values like "3.00" aren't reformatted by the browser locale.
 11. **`?state=found`** on a search without results shows the sample ranking, so the demo view is never empty.
-12. **Status codes in production:** with Partial Prerendering, `pnpm start` answers 200 for a draft's detail URL and for unknown ids; the browser still redirects to `/edit` or shows the 404 page.
+12. **Status codes in production:** with Partial Prerendering, `npm start` answers 200 for a draft's detail URL and for unknown ids; the browser still redirects to `/edit` or shows the 404 page.
 13. **Date inputs** show the browser's own date format (e.g. dd/mm/yyyy), which may differ from the mm/dd/yyyy in the PNGs.
-14. **Dev only:** the round Next.js badge bottom-left appears only in `pnpm dev`.
+14. **Dev only:** the round Next.js badge bottom-left appears only in `npm run dev`.
 
 ## Run with Docker
 
